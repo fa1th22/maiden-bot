@@ -1,3 +1,9 @@
+const http = require('http');
+http.createServer((req, res) => {
+    res.write("I am alive!");
+    res.end();
+}).listen(process.env.PORT || 3000);
+
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
 
 const CONFIG = {
