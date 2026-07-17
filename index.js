@@ -9,7 +9,7 @@ const CONFIG = {
     GENDER_MESSAGE_ID: '1527741983857311855',
     BUILD_MESSAGE_ID: '1527749647697711124',
     NOTIF_MESSAGE_ID: '1527796442771624040',
-    GAME_MESSAGE_ID: 'YOUR_GAME_MESSAGE_ID', // <--- REPLACE THIS
+    GAME_MESSAGE_ID: '1527799048453492776', 
 
     // Role Maps
     GENDER_ROLES: {
@@ -52,11 +52,16 @@ const CONFIG = {
 };
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.MessageContent],
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent
+    ],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
-// Helper function to initialize reactions
 async function setupReactions(channelId, messageId, roles) {
     try {
         const channel = await client.channels.fetch(channelId);
@@ -97,7 +102,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
     const member = await reaction.message.guild.members.fetch(user.id);
 
-    // Exclusive logic for Gender only
     if (isGender) {
         for (const id of Object.values(CONFIG.GENDER_ROLES)) {
             if (member.roles.cache.has(id)) await member.roles.remove(id).catch(() => {});
@@ -133,3 +137,4 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 client.login(CONFIG.TOKEN);
 ```eof
+
