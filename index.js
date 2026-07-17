@@ -136,5 +136,5 @@ client.on('messageReactionRemove', async (reaction, user) => {
 });
 
 client.login(CONFIG.TOKEN);
-```eof
+
 
