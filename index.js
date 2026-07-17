@@ -11,9 +11,10 @@ const CONFIG = {
         '1527740678904217753': '1527767895935815750', // Female
         '1527741710140964975': '1527768038395346995', // Male
         '1527740787062997153': '1527768077297520730'  // Other
-    },
+    }, // <-- COMMA ADDED HERE
+
     BUILD_ROLES: {
-        '1527732922558451722': '1527736673973305344', // Greatsword
+        '1527732922558451722': '1527736673973305344', // Greatsword 
         '1527732953453695086': '1527736733641216151', // Mace
         '1527737783765172264': '1527736772346253322', // Axe
         '1527732978376114319': '1527736817837801522', // Scythe
@@ -36,6 +37,7 @@ const client = new Client({
     partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
+// Welcome Message with Embed
 client.on('guildMemberAdd', async member => {
     const channel = member.guild.channels.cache.get(CONFIG.WELCOME_CHANNEL_ID);
     if (!channel) return;
@@ -51,6 +53,7 @@ client.on('guildMemberAdd', async member => {
     await channel.send({ embeds: [embed], files: [image] });
 });
 
+// Initialize Reactions on Start
 client.once('ready', async () => {
     console.log(`${client.user.tag} is online.`);
     try {
@@ -71,6 +74,7 @@ client.once('ready', async () => {
     } catch (err) { console.error("Error setting up reactions:", err); }
 });
 
+// Reaction Logic
 client.on('messageReactionAdd', async (reaction, user) => {
     if (user.bot) return;
     if (reaction.partial) await reaction.fetch();
@@ -102,6 +106,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     }
 });
 
+// Cleanup on Remove
 client.on('messageReactionRemove', async (reaction, user) => {
     if (user.bot) return;
     if (reaction.partial) await reaction.fetch();
