@@ -1,8 +1,18 @@
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+    res.send('Bot is active and running!');
+});
+
+app.listen(PORT, () => {
+    console.log(`Web server listening on port ${PORT}`);
+});
 
 const CONFIG = {
     TOKEN: process.env.TOKEN, 
-    WELCOME_CHANNEL_ID: '1527764233872478259',
     TITLES_CHANNEL_ID: '1527697750701903902',
     
     // Message IDs
@@ -17,25 +27,22 @@ const CONFIG = {
         '1527741710140964975': '1527768038395346995', // Male
         '1527810586476286202': '1527768077297520730'  // Other
     }, 
-
     AGE_ROLES: {
         '1527810013693874298': '1527813175418818710', // 18+
         '1527812664103927818': '1527813308206416024', // 21+
         '1527810465642840204': '1527813347699986552'  // 25+
     },
-
     BUILD_ROLES: {
-        '1527732922558451722': '1527736673973305344', // Greatsword 
-        '1527732953453695086': '1527736733641216151', // Mace
-        '1527737783765172264': '1527736772346253322', // Axe
-        '1527732978376114319': '1527736817837801522', // Scythe
-        '1527733511165968435': '1527737017285218385', // Bow
-        '1527737759337283835': '1527736869507305652', // Daggers
-        '1527733043689816395': '1527737060922884146', // Shield
-        '1527733016829624441': '1527737095395737660', // Spear
-        '1527737711576748263': '1527737135774437498'  // Seal
+        '1527732922558451722': '1527736673973305344',
+        '1527732953453695086': '1527736733641216151',
+        '1527737783765172264': '1527736772346253322',
+        '1527732978376114319': '1527736817837801522',
+        '1527733511165968435': '1527737017285218385',
+        '1527737759337283835': '1527736869507305652',
+        '1527733043689816395': '1527737060922884146',
+        '1527733016829624441': '1527737095395737660',
+        '1527737711576748263': '1527737135774437498'
     },
-
     NOTIF_ROLES: {
         '1527793713009524916': '1527796519799881728',
         '1527793077652295680': '1527796742555435161',
@@ -58,7 +65,6 @@ client.once('ready', async () => {
     console.log(`${client.user.tag} is online.`);
     try {
         const channel = await client.channels.fetch(CONFIG.TITLES_CHANNEL_ID);
-        
         const menus = [
             { msgId: CONFIG.GENDER_MESSAGE_ID, roles: CONFIG.GENDER_ROLES },
             { msgId: CONFIG.AGE_MESSAGE_ID, roles: CONFIG.AGE_ROLES },
@@ -79,59 +85,59 @@ client.once('ready', async () => {
 
 client.on('messageReactionAdd', async (reaction, user) => {
     if (user.bot) return;
-    if (reaction.partial) await reaction.fetch();
+    try {
+        if (reaction.partial) await reaction.fetch();
 
-    const isGender = reaction.message.id === CONFIG.GENDER_MESSAGE_ID;
-    const isAge = reaction.message.id === CONFIG.AGE_MESSAGE_ID;
-    const isBuild = reaction.message.id === CONFIG.BUILD_MESSAGE_ID;
-    const isNotif = reaction.message.id === CONFIG.NOTIF_MESSAGE_ID;
-    
-    if (!isGender && !isAge && !isBuild && !isNotif) return;
+        const isGender = reaction.message.id === CONFIG.GENDER_MESSAGE_ID;
+        const isAge = reaction.message.id === CONFIG.AGE_MESSAGE_ID;
+        const isBuild = reaction.message.id === CONFIG.BUILD_MESSAGE_ID;
+        const isNotif = reaction.message.id === CONFIG.NOTIF_MESSAGE_ID;
+        
+        if (!isGender && !isAge && !isBuild && !isNotif) return;
 
-    let roleMap;
-    if (isGender) roleMap = CONFIG.GENDER_ROLES;
-    else if (isAge) roleMap = CONFIG.AGE_ROLES;
-    else if (isBuild) roleMap = CONFIG.BUILD_ROLES;
-    else roleMap = CONFIG.NOTIF_ROLES;
+        let roleMap;
+        if (isGender) roleMap = CONFIG.GENDER_ROLES;
+        else if (isAge) roleMap = CONFIG.AGE_ROLES;
+        else if (isBuild) roleMap = CONFIG.BUILD_ROLES;
+        else roleMap = CONFIG.NOTIF_ROLES;
 
-    const roleId = roleMap[reaction.emoji.id];
-    if (!roleId) return;
+        const roleId = roleMap[reaction.emoji.id];
+        if (!roleId) return;
 
-    const member = await reaction.message.guild.members.fetch(user.id);
-    
-    // EXCLUSIVE LOGIC (Gender/Age only)
-    if (isGender || isAge) {
-        for (const id of Object.values(roleMap)) {
-            if (member.roles.cache.has(id)) await member.roles.remove(id).catch(() => {});
-        }
-        // Remove other reactions from user on this specific message
-        for (const react of reaction.message.reactions.cache.values()) {
-            if (react.emoji.id !== reaction.emoji.id && roleMap[react.emoji.id]) {
-                await react.users.remove(user.id).catch(() => {});
+        const member = await reaction.message.guild.members.fetch(user.id);
+        
+        // Handle Exclusive Roles (Gender/Age)
+        if (isGender || isAge) {
+            for (const id of Object.values(roleMap)) {
+                if (member.roles.cache.has(id)) await member.roles.remove(id).catch(() => {});
+            }
+            for (const react of reaction.message.reactions.cache.values()) {
+                if (react.emoji.id !== reaction.emoji.id && roleMap[react.emoji.id]) {
+                    await react.users.remove(user.id).catch(() => {});
+                }
             }
         }
-    }
-
-    await member.roles.add(roleId).catch(console.error);
+        await member.roles.add(roleId).catch(console.error);
+    } catch (err) { console.error("Reaction Add Error:", err); }
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
     if (user.bot) return;
-    if (reaction.partial) await reaction.fetch();
+    try {
+        if (reaction.partial) await reaction.fetch();
+        let roleMap;
+        if (reaction.message.id === CONFIG.GENDER_MESSAGE_ID) roleMap = CONFIG.GENDER_ROLES;
+        else if (reaction.message.id === CONFIG.AGE_MESSAGE_ID) roleMap = CONFIG.AGE_ROLES;
+        else if (reaction.message.id === CONFIG.BUILD_MESSAGE_ID) roleMap = CONFIG.BUILD_ROLES;
+        else if (reaction.message.id === CONFIG.NOTIF_MESSAGE_ID) roleMap = CONFIG.NOTIF_ROLES;
 
-    let roleMap;
-    if (reaction.message.id === CONFIG.GENDER_MESSAGE_ID) roleMap = CONFIG.GENDER_ROLES;
-    else if (reaction.message.id === CONFIG.AGE_MESSAGE_ID) roleMap = CONFIG.AGE_ROLES;
-    else if (reaction.message.id === CONFIG.BUILD_MESSAGE_ID) roleMap = CONFIG.BUILD_ROLES;
-    else if (reaction.message.id === CONFIG.NOTIF_MESSAGE_ID) roleMap = CONFIG.NOTIF_ROLES;
-
-    if (!roleMap) return;
-
-    const roleId = roleMap[reaction.emoji.id];
-    if (roleId) {
-        const member = await reaction.message.guild.members.fetch(user.id);
-        await member.roles.remove(roleId).catch(console.error);
-    }
+        if (!roleMap) return;
+        const roleId = roleMap[reaction.emoji.id];
+        if (roleId) {
+            const member = await reaction.message.guild.members.fetch(user.id);
+            await member.roles.remove(roleId).catch(console.error);
+        }
+    } catch (err) { console.error("Reaction Remove Error:", err); }
 });
 
 client.login(CONFIG.TOKEN);
