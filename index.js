@@ -1,4 +1,12 @@
 const { Client, GatewayIntentBits, Partials, AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const http = require('http'); // 1. Added this for the Render dummy server
+
+// 2. Dummy server to satisfy Render's port requirement
+const server = http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end('Bot is running');
+});
+server.listen(process.env.PORT || 3000);
 
 const CONFIG = {
     TOKEN: process.env.TOKEN,
@@ -8,7 +16,7 @@ const CONFIG = {
     GENDER_MESSAGE_ID: '1527741983857311855',
     BUILD_MESSAGE_ID: '1527749647697711124',
     NOTIF_MESSAGE_ID: '1527796442771624040',
-    GAME_MESSAGE_ID: '1527799048453492776', // Make sure this is the right ID!
+    GAME_MESSAGE_ID: '1527799048453492776', 
 
     GENDER_ROLES: {
         '1527740678904217753': '1527767895935815750',
@@ -50,7 +58,13 @@ const CONFIG = {
 };
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.MessageContent],
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent
+    ],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
@@ -128,4 +142,5 @@ client.on('messageReactionRemove', async (reaction, user) => {
 });
 
 client.login(CONFIG.TOKEN);
-// END OF FILE
+```eof
+
