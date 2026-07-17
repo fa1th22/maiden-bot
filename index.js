@@ -1,9 +1,3 @@
-const http = require('http');
-http.createServer((req, res) => {
-    res.write("I am alive!");
-    res.end();
-}).listen(process.env.PORT || 3000);
-
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
 
 const CONFIG = {
@@ -30,7 +24,7 @@ const CONFIG = {
         '1527810465642840204': '1527813347699986552'  // 25+
     },
 
-   BUILD_ROLES: {
+    BUILD_ROLES: {
         '1527732922558451722': '1527736673973305344', // Greatsword 
         '1527732953453695086': '1527736733641216151', // Mace
         '1527737783765172264': '1527736772346253322', // Axe
@@ -41,11 +35,12 @@ const CONFIG = {
         '1527733016829624441': '1527737095395737660', // Spear
         '1527737711576748263': '1527737135774437498'  // Seal
     },
+
     NOTIF_ROLES: {
         '1527793713009524916': '1527796519799881728',
         '1527793077652295680': '1527796742555435161',
         '1527795758856667207': '1527796861082275840'
-    },
+    }
 };
 
 const client = new Client({
@@ -64,15 +59,16 @@ client.once('ready', async () => {
     try {
         const channel = await client.channels.fetch(CONFIG.TITLES_CHANNEL_ID);
         
-        // Setup Menus
         const menus = [
             { msgId: CONFIG.GENDER_MESSAGE_ID, roles: CONFIG.GENDER_ROLES },
             { msgId: CONFIG.AGE_MESSAGE_ID, roles: CONFIG.AGE_ROLES },
-            { msgId: CONFIG.BUILD_MESSAGE_ID, roles: CONFIG.BUILD_ROLES }
+            { msgId: CONFIG.BUILD_MESSAGE_ID, roles: CONFIG.BUILD_ROLES },
+            { msgId: CONFIG.NOTIF_MESSAGE_ID, roles: CONFIG.NOTIF_ROLES }
         ];
 
         for (const menu of menus) {
-            const msg = await channel.messages.fetch(menu.msgId);
+            const msg = await channel.messages.fetch(menu.msgId).catch(() => null);
+            if (!msg) continue;
             for (const emojiId of Object.keys(menu.roles)) {
                 await msg.react(emojiId).catch(console.error);
             }
@@ -88,20 +84,22 @@ client.on('messageReactionAdd', async (reaction, user) => {
     const isGender = reaction.message.id === CONFIG.GENDER_MESSAGE_ID;
     const isAge = reaction.message.id === CONFIG.AGE_MESSAGE_ID;
     const isBuild = reaction.message.id === CONFIG.BUILD_MESSAGE_ID;
+    const isNotif = reaction.message.id === CONFIG.NOTIF_MESSAGE_ID;
     
-    if (!isGender && !isAge && !isBuild) return;
+    if (!isGender && !isAge && !isBuild && !isNotif) return;
 
     let roleMap;
     if (isGender) roleMap = CONFIG.GENDER_ROLES;
     else if (isAge) roleMap = CONFIG.AGE_ROLES;
-    else roleMap = CONFIG.BUILD_ROLES;
+    else if (isBuild) roleMap = CONFIG.BUILD_ROLES;
+    else roleMap = CONFIG.NOTIF_ROLES;
 
     const roleId = roleMap[reaction.emoji.id];
     if (!roleId) return;
 
     const member = await reaction.message.guild.members.fetch(user.id);
     
-    // EXCLUSIVE LOGIC (Gender/Age)
+    // EXCLUSIVE LOGIC (Gender/Age only)
     if (isGender || isAge) {
         for (const id of Object.values(roleMap)) {
             if (member.roles.cache.has(id)) await member.roles.remove(id).catch(() => {});
@@ -121,15 +119,13 @@ client.on('messageReactionRemove', async (reaction, user) => {
     if (user.bot) return;
     if (reaction.partial) await reaction.fetch();
 
-    const isGender = reaction.message.id === CONFIG.GENDER_MESSAGE_ID;
-    const isAge = reaction.message.id === CONFIG.AGE_MESSAGE_ID;
-    const isBuild = reaction.message.id === CONFIG.BUILD_MESSAGE_ID;
-    if (!isGender && !isAge && !isBuild) return;
-
     let roleMap;
-    if (isGender) roleMap = CONFIG.GENDER_ROLES;
-    else if (isAge) roleMap = CONFIG.AGE_ROLES;
-    else roleMap = CONFIG.BUILD_ROLES;
+    if (reaction.message.id === CONFIG.GENDER_MESSAGE_ID) roleMap = CONFIG.GENDER_ROLES;
+    else if (reaction.message.id === CONFIG.AGE_MESSAGE_ID) roleMap = CONFIG.AGE_ROLES;
+    else if (reaction.message.id === CONFIG.BUILD_MESSAGE_ID) roleMap = CONFIG.BUILD_ROLES;
+    else if (reaction.message.id === CONFIG.NOTIF_MESSAGE_ID) roleMap = CONFIG.NOTIF_ROLES;
+
+    if (!roleMap) return;
 
     const roleId = roleMap[reaction.emoji.id];
     if (roleId) {
