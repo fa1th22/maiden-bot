@@ -1,11 +1,12 @@
 {
-"name": "maiden-bot",
-"version": "1.0.0",
-"main": "index.js",
-"dependencies": {
-"discord.js": "^14.14.1"
-},
-"scripts": {
-"start": "node index.js"
-}
+  "name": "maiden-in-black",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "express": "^4.18.2"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
 }
