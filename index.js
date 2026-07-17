@@ -1,7 +1,8 @@
 const { Client, GatewayIntentBits, Partials, AttachmentBuilder, EmbedBuilder } = require('discord.js');
 
 const CONFIG = {
-    TOKEN: process.env.TOKEN,
+    // Make sure your Render Environment Variable name matches this
+    TOKEN: process.env.TOKEN, 
     WELCOME_CHANNEL_ID: '1527764233872478259',
     TITLES_CHANNEL_ID: '1527697750701903902',
     GENDER_MESSAGE_ID: '1527741983857311855',
@@ -11,7 +12,7 @@ const CONFIG = {
         '1527740678904217753': '1527767895935815750', // Female
         '1527741710140964975': '1527768038395346995', // Male
         '1527740787062997153': '1527768077297520730'  // Other
-    }, // <-- COMMA ADDED HERE
+    }, 
 
     BUILD_ROLES: {
         '1527732922558451722': '1527736673973305344', // Greatsword 
@@ -37,23 +38,16 @@ const client = new Client({
     partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
-// Welcome Message with Embed
+// Welcome Message
 client.on('guildMemberAdd', async member => {
     const channel = member.guild.channels.cache.get(CONFIG.WELCOME_CHANNEL_ID);
     if (!channel) return;
 
-    const image = new AttachmentBuilder('./images/darksoulsbonfire.png', { name: 'darksoulsbonfire.png' });
-    const embed = new EmbedBuilder()
-        .setColor('#696969')
-        .setTitle('🩸 Welcome to the Fold')
-        .setDescription(`Welcome to the fold, ${member}.\n\nMay you find your worth in the waking world.\n\nBefore beginning your hunt, visit <#${CONFIG.TITLES_CHANNEL_ID}> to choose your titles.`)
-        .setImage('attachment://darksoulsbonfire.png')
-        .setFooter({ text: 'Fear the Old Blood.' });
-
-    await channel.send({ embeds: [embed], files: [image] });
+    // Optional: add a welcome embed or text
+    channel.send(`Welcome to the fold, ${member}. May you find your worth in the waking world.`);
 });
 
-// Initialize Reactions on Start
+// Initialize Reactions
 client.once('ready', async () => {
     console.log(`${client.user.tag} is online.`);
     try {
@@ -62,19 +56,19 @@ client.once('ready', async () => {
         // Setup Gender
         const genderMsg = await channel.messages.fetch(CONFIG.GENDER_MESSAGE_ID);
         for (const emojiId of Object.keys(CONFIG.GENDER_ROLES)) {
-            if (!genderMsg.reactions.cache.has(emojiId)) await genderMsg.react(emojiId);
+            await genderMsg.react(emojiId);
         }
 
         // Setup Builds
         const buildMsg = await channel.messages.fetch(CONFIG.BUILD_MESSAGE_ID);
         for (const emojiId of Object.keys(CONFIG.BUILD_ROLES)) {
-            if (!buildMsg.reactions.cache.has(emojiId)) await buildMsg.react(emojiId);
+            await buildMsg.react(emojiId);
         }
         console.log("Reaction menus initialized.");
-    } catch (err) { console.error("Error setting up reactions:", err); }
+    } catch (err) { console.error("Error initializing reactions:", err); }
 });
 
-// Reaction Logic
+// Reaction Added Logic
 client.on('messageReactionAdd', async (reaction, user) => {
     if (user.bot) return;
     if (reaction.partial) await reaction.fetch();
@@ -83,30 +77,30 @@ client.on('messageReactionAdd', async (reaction, user) => {
     const isBuild = reaction.message.id === CONFIG.BUILD_MESSAGE_ID;
     if (!isGender && !isBuild) return;
 
-    const emojiId = reaction.emoji.id;
     const roleMap = isGender ? CONFIG.GENDER_ROLES : CONFIG.BUILD_ROLES;
-    const roleId = roleMap[emojiId];
-
+    const roleId = roleMap[reaction.emoji.id];
     if (!roleId) return;
 
     const member = await reaction.message.guild.members.fetch(user.id);
     
-    // Exclusive Choice logic (Removes others)
-    for (const id of Object.values(roleMap)) {
-        if (member.roles.cache.has(id)) await member.roles.remove(id).catch(() => {});
-    }
-
-    await member.roles.add(roleId).catch(console.error);
-
-    // Remove other reactions from user
-    for (const react of reaction.message.reactions.cache.values()) {
-        if (react.emoji.id && react.emoji.id !== emojiId && roleMap[react.emoji.id]) {
-            await react.users.remove(user.id).catch(() => {});
+    // EXCLUSIVE LOGIC FOR GENDER ONLY
+    if (isGender) {
+        for (const id of Object.values(CONFIG.GENDER_ROLES)) {
+            if (member.roles.cache.has(id)) await member.roles.remove(id).catch(() => {});
+        }
+        // Remove other reactions from user
+        for (const react of reaction.message.reactions.cache.values()) {
+            if (react.emoji.id !== reaction.emoji.id && CONFIG.GENDER_ROLES[react.emoji.id]) {
+                await react.users.remove(user.id).catch(() => {});
+            }
         }
     }
+
+    // Add selected role (Works for both)
+    await member.roles.add(roleId).catch(console.error);
 });
 
-// Cleanup on Remove
+// Reaction Removed Logic
 client.on('messageReactionRemove', async (reaction, user) => {
     if (user.bot) return;
     if (reaction.partial) await reaction.fetch();
@@ -117,10 +111,10 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
     const roleMap = isGender ? CONFIG.GENDER_ROLES : CONFIG.BUILD_ROLES;
     const roleId = roleMap[reaction.emoji.id];
-
-    if (!roleId) return;
-    const member = await reaction.message.guild.members.fetch(user.id);
-    await member.roles.remove(roleId).catch(console.error);
+    if (roleId) {
+        const member = await reaction.message.guild.members.fetch(user.id);
+        await member.roles.remove(roleId).catch(console.error);
+    }
 });
 
 client.login(CONFIG.TOKEN);
