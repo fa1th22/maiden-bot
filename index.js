@@ -5,13 +5,11 @@ const CONFIG = {
     WELCOME_CHANNEL_ID: '1527764233872478259',
     TITLES_CHANNEL_ID: '1527697750701903902',
     
-    // Message IDs
     GENDER_MESSAGE_ID: '1527741983857311855',
     BUILD_MESSAGE_ID: '1527749647697711124',
     NOTIF_MESSAGE_ID: '1527796442771624040',
-    GAME_MESSAGE_ID: '1527799048453492776', 
+    GAME_MESSAGE_ID: '1527796442771624040', // Make sure this is the right ID!
 
-    // Role Maps
     GENDER_ROLES: {
         '1527740678904217753': '1527767895935815750',
         '1527741710140964975': '1527768038395346995',
@@ -52,13 +50,7 @@ const CONFIG = {
 };
 
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.MessageContent
-    ],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.MessageContent],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
@@ -136,5 +128,4 @@ client.on('messageReactionRemove', async (reaction, user) => {
 });
 
 client.login(CONFIG.TOKEN);
-```eof
-
+// END OF FILE
