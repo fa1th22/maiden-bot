@@ -242,7 +242,6 @@ client.on('guildMemberAdd', async (member) => {
         .setDescription(
 `welcome to the fold, ${member}!`
         )
-        .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
         .setImage('https://cdn.discordapp.com/attachments/1527764233872478259/1527863722746450012/darksoulsbonfire.jpeg')
         .setFooter({
             text: `${memberNumber} to enter the hold`
