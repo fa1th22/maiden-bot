@@ -1,4 +1,9 @@
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const {
+    Client,
+    GatewayIntentBits,
+    Partials,
+    EmbedBuilder
+} = require('discord.js');
 const express = require('express');
 
 const app = express();
@@ -15,6 +20,7 @@ app.listen(PORT, () => {
 const CONFIG = {
     TOKEN: process.env.TOKEN,
     TITLES_CHANNEL_ID: '1527697750701903902',
+    WELCOME_CHANNEL_ID: '1527764233872478259',
 
     GENDER_MESSAGE_ID: '1527808716076879924',
     AGE_MESSAGE_ID: '1527812847562789026',
@@ -201,5 +207,29 @@ if (!CONFIG.TOKEN) {
     console.error("Missing TOKEN environment variable.");
     process.exit(1);
 }
+client.on('guildMemberAdd', async (member) => {
 
+    const channel = member.guild.channels.cache.get(CONFIG.WELCOME_CHANNEL_ID);
+
+    if (!channel) return;
+
+    const embed = new EmbedBuilder()
+        .setColor('#ff69b4')
+        .setTitle('🎉 Welcome!')
+        .setDescription(
+`Welcome to the fold, ${member}!`
+        )
+        .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+        .setImage('https://discord.com/channels/1463021055261278395/1527764233872478259/1527863722998235176')
+        .setFooter({
+            text: `Member #${member.guild.memberCount}`
+        })
+        .setTimestamp();
+
+    channel.send({
+        content: `Welcome ${member}!`,
+        embeds: [embed]
+    });
+
+});
 client.login(CONFIG.TOKEN);
