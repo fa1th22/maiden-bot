@@ -207,22 +207,8 @@ if (!CONFIG.TOKEN) {
     console.error("Missing TOKEN environment variable.");
     process.exit(1);
 }
-client.on('guildMemberAdd', async (member) => {
 
-    const channel = member.guild.channels.cache.get(CONFIG.WELCOME_CHANNEL_ID);
-
-    if (!channel) return;
-
-    const embed = new EmbedBuilder()
-        .setColor('#000000')
-        .setTitle('welcome!')
-        .setDescription(
-`welcome to the fold, ${member}`
-        )
-        .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-        .setImage('https://cdn.discordapp.com/attachments/1527764233872478259/1527863722746450012/darksoulsbonfire.jpeg')
-        .setFooter({
-            function ordinal(number) {
+function ordinal(number) {
     if (number % 100 >= 11 && number % 100 <= 13) {
         return `${number}th`;
     }
@@ -238,13 +224,38 @@ client.on('guildMemberAdd', async (member) => {
             return `${number}th`;
     }
 }
+
+client.on('guildMemberAdd', async (member) => {
+
+    const channel = member.guild.channels.cache.get(CONFIG.WELCOME_CHANNEL_ID);
+
+    if (!channel) {
+        console.log("Welcome channel not found.");
+        return;
+    }
+
+    const memberNumber = ordinal(member.guild.memberCount);
+
+    const embed = new EmbedBuilder()
+        .setColor('#000000')
+        .setTitle('welcome!')
+        .setDescription(
+`welcome to the fold, ${member}!
+
+**${memberNumber}** to enter the hold`
+        )
+        .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+        .setImage('https://cdn.discordapp.com/attachments/1527764233872478259/1527863722746450012/darksoulsbonfire.jpeg')
+        .setFooter({
+            text: `**${memberNumber}** to enter the hold`
         })
         .setTimestamp();
 
-    channel.send({
+    await channel.send({
         content: `welcome ${member}!`,
         embeds: [embed]
     });
 
 });
+
 client.login(CONFIG.TOKEN);
