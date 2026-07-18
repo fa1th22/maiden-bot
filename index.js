@@ -214,20 +214,35 @@ client.on('guildMemberAdd', async (member) => {
     if (!channel) return;
 
     const embed = new EmbedBuilder()
-        .setColor('#ff69b4')
-        .setTitle('🎉 Welcome!')
+        .setColor('#000000')
+        .setTitle('welcome!')
         .setDescription(
-`Welcome to the fold, ${member}!`
+`welcome to the fold, ${member}`
         )
         .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-        .setImage('https://discord.com/channels/1463021055261278395/1527764233872478259/1527863722998235176')
+        .setImage('https://cdn.discordapp.com/attachments/1527764233872478259/1527863722746450012/darksoulsbonfire.jpeg')
         .setFooter({
-            text: `Member #${member.guild.memberCount}`
+            function ordinal(number) {
+    if (number % 100 >= 11 && number % 100 <= 13) {
+        return `${number}th`;
+    }
+
+    switch (number % 10) {
+        case 1:
+            return `${number}st`;
+        case 2:
+            return `${number}nd`;
+        case 3:
+            return `${number}rd`;
+        default:
+            return `${number}th`;
+    }
+}
         })
         .setTimestamp();
 
     channel.send({
-        content: `Welcome ${member}!`,
+        content: `welcome ${member}!`,
         embeds: [embed]
     });
 
