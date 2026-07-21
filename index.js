@@ -276,4 +276,81 @@ client.on('guildMemberAdd', async (member) => {
 
 });
 
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+  // Check if the user just started boosting (premiumSince changed from null to a date)
+  if (!oldMember.premiumSince && newMember.premiumSince) {
+    
+    const boosterRoleId = '1527396335223963819'; 
+    const announcementChannelId = '1527904649217314967';
+    const imageUrl = 'https://cdn.discordapp.com/attachments/1527904649217314967/1529250496135565353/the-roundtable-hold-will-be-our-next-home-after-16-days-v0-5uimfg7ros0f1.png'; 
+
+    try {
+      // 1. Assign the new role
+      const role = newMember.guild.roles.cache.get(boosterRoleId);
+      if (role) {
+        await newMember.roles.add(role);
+        console.log(`Assigned booster role to ${newMember.user.tag}`);
+      } else {
+        console.error('Booster role not found in cache.');
+      }
+
+      // 2. Send the thank you message with the image
+      // FIX: Use the variable which holds the ID as a string
+      const channel = newMember.guild.channels.cache.get(announcementChannelId);
+      if (channel) {
+        await channel.send({
+          content: `thank you so much for boosting the server, <@${newMember.id}>!`,
+          // FIX: Use the imageUrl variable instead of the unquoted raw link
+          files: [imageUrl] 
+        });
+      } else {
+        console.error('Announcement channel not found.');
+      }
+
+    } catch (error) {
+      console.error('Failed to handle server boost:', error);
+    }
+  }
+});
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+  const boosterRoleId = '1527396335223963819'; 
+
+  // 1. Check if the user JUST STARTED boosting
+  if (!oldMember.premiumSince && newMember.premiumSince) {
+    const announcementChannelId = '1527904649217314967';
+    const imageUrl = 'https://cdn.discordapp.com/attachments/1527904649217314967/1529250496135565353/the-roundtable-hold-will-be-our-next-home-after-16-days-v0-5uimfg7ros0f1.png'; 
+
+    try {
+      // Assign the new role
+      const role = newMember.guild.roles.cache.get(boosterRoleId);
+      if (role) await newMember.roles.add(role);
+
+      // Send the thank you message
+      const channel = newMember.guild.channels.cache.get(announcementChannelId);
+      if (channel) {
+        await channel.send({
+          content: `thank you so much for boosting the server, <@${newMember.id}>!`,
+          files: [imageUrl] 
+        });
+      }
+    } catch (error) {
+      console.error('Failed to handle server boost:', error);
+    }
+  } 
+  
+  // 2. Check if the user STOPPED boosting
+  else if (oldMember.premiumSince && !newMember.premiumSince) {
+    try {
+      // Remove the role
+      const role = newMember.guild.roles.cache.get(boosterRoleId);
+      if (role) {
+        await newMember.roles.remove(role);
+        console.log(`Removed booster role from ${newMember.user.tag} because their boost ended.`);
+      }
+    } catch (error) {
+      console.error('Failed to remove booster role:', error);
+    }
+  }
+});
+// Move this to the very bottom of your main file
 client.login(CONFIG.TOKEN);
