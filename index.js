@@ -121,6 +121,28 @@ client.once('ready', async () => {
     }
 });
 
+client.on('guildMemberAdd', async (member) => {
+  const deprivedRoleId = '1527396616871481446';
+
+  try {
+    // Fetch the role from the server
+    const role = member.guild.roles.cache.get(deprivedRoleId);
+    
+    if (!role) {
+      console.error('Deprived role not found in the server cache.');
+      return;
+    }
+
+    // Assign the role to the new member
+    await member.roles.add(role);
+    console.log(`Assigned the 'deprived' role to ${member.user.tag}`);
+    
+  } catch (error) {
+    // This usually catches permission errors if the bot's role is lower than the 'deprived' role
+    console.error('Failed to assign the deprived role:', error);
+  }
+});
+
 client.on('messageReactionAdd', async (reaction, user) => {
     if (user.bot) return;
 
