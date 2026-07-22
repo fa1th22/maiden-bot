@@ -141,7 +141,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
         const isNotif = reaction.message.id === CONFIG.NOTIF_MESSAGE_ID;
         const isRules = reaction.message.id === CONFIG.RULES_MESSAGE_ID;
 
-        // UPDATE THIS LINE TO INCLUDE isRules:
         if (!isGender && !isAge && !isBuild && !isNotif && !isRules) return;
 
         let roleMap;
@@ -150,9 +149,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
         else if (isBuild) roleMap = CONFIG.BUILD_ROLES;
         else if (isRules) roleMap = CONFIG.RULES_ROLES;
         else roleMap = CONFIG.NOTIF_ROLES;
-        if (!isGender && !isAge && !isBuild && !isNotif) return;
 
-        const roleId = roleMap[reaction.emoji.id];
+        const emojiKey = reaction.emoji.id || reaction.emoji.name;
+        const roleId = roleMap[emojiKey];
+        
         if (!roleId) return;
 
         const member = await reaction.message.guild.members.fetch(user.id);
